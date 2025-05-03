@@ -17,7 +17,7 @@ export class TranscriptionService {
         this.sendAudioStream = this.sendAudioStream.bind(this); 
         this.socket.onopen = () => {
             console.log("WebSocket connection opened");
-            this.setStatus("listening");
+            // this.setStatus("listening");
             setTimeout(() => this.sendAudioStream(), 1000);
         };
 

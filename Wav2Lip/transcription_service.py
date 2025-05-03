@@ -16,7 +16,7 @@ import asyncio
 load_dotenv()
 
 class TranscriptionService:
-    def __init__(self, handle_transcript,model="nova-3", language="en-US", sample_rate=16000):
+    def __init__(self, handle_transcript,event_loop=None,model="nova-3", language="en-US", sample_rate=16000):
         self.api_key = os.getenv("DEEPGRAM_API_KEY")
         self.model = model
         self.language = language
@@ -24,6 +24,7 @@ class TranscriptionService:
         self.is_finals = []
         self.connected = False
         self.handle_transcript = handle_transcript
+        self.loop = event_loop or asyncio.get_event_loop()
 
         self.deepgram = DeepgramClient(self.api_key)
         self.dg_connection = None
@@ -43,13 +44,16 @@ class TranscriptionService:
                     return
                 if result.is_final:
                     self.is_finals.append(sentence)
-
+                    asyncio.run_coroutine_threadsafe(
+                        self.handle_transcript(sentence), self.loop
+                    )
+                    
                     if result.speech_final:
                         utterance = " ".join(self.is_finals)
-                        asyncio.run(self.handle_transcript(utterance))
                         print(f"Speech Final: {utterance}")
                         self.is_finals = []
                     else:
+                        
                         print(f"Is Final: {sentence}")
                 else:
                     print(f"Interim Results: {sentence}")

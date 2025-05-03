@@ -152,6 +152,8 @@ class Wav2lipService:
         base64_video = base64.b64encode(video_data).decode("utf-8")
         os.remove(f"temp/{filename}.avi")
         os.remove(f"temp/{filename}.mp4")
+
+        print(f"Generating time {time() - s}")
         return base64_video
 
             

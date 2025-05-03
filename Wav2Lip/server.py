@@ -20,6 +20,7 @@ async def load_model():
     global wav2lipService
     wav2lipService = Wav2lipService()
     await wav2lipService.async_setup()
+    
 
 
 origins = ["*"]
@@ -52,6 +53,12 @@ async def media_stream_web(websocket: WebSocket):
 
     llm = LLM(instruction=SYSTEM_PROMPT)
     async def handle_transcript(text):
+        await websocket.send_text(json.dumps({
+            "event": "state",
+            "state": {
+                "value": "Thinking..."
+                }
+            }))
         response = llm.generate(text=text)
         print(f"BOT: {response}")
         base64_video = await wav2lipService.send(response)
@@ -63,8 +70,8 @@ async def media_stream_web(websocket: WebSocket):
                 }
             }))
         
-
-    transcription_service = TranscriptionService(handle_transcript=handle_transcript)
+    loop = asyncio.get_running_loop()
+    transcription_service = TranscriptionService(handle_transcript=handle_transcript,event_loop=loop)
     transcription_service.connect()
 
     print("here")
